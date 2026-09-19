@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "392173459213",
+    "project_id": "ringtone-cc895",
+    "storage_bucket": "ringtone-cc895.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:392173459213:android:d449604043d9606e0f4244",
+        "android_client_info": {
+          "package_name": "com.mobilewallet.consumer.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOJPo_eGljL_ZuKfW3w52s1qhrlBsXiys"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

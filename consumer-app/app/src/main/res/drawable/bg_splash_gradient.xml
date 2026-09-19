@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FILE: consumer-app/app/src/main/res/drawable/bg_splash_gradient.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:startColor="#6C5CE7"
+        android:centerColor="#8B7FE8"
+        android:endColor="#A29BFE"
+        android:angle="135" />
+</shape>

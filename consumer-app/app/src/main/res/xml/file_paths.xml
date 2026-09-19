@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <cache-path name="qr_images" path="qr/" />
+    <files-path name="shared_files" path="shared/" />
+    <external-cache-path name="external_cache" path="." />
+</paths>
