@@ -363,6 +363,8 @@ The system consists of **four major components**:
 
 mobile-wallet-with-merchant-payment/
 │
+
+
 ├── backend/
 │   ├── pom.xml
 │   ├── Dockerfile
@@ -554,7 +556,10 @@ mobile-wallet-with-merchant-payment/
 │   │       └── resources/
 │   │           └── application-test.properties
 │   └── README.md
-│
+
+
+
+
 ├── consumer-app/
 │   ├── settings.gradle
 │   ├── build.gradle
@@ -678,7 +683,9 @@ mobile-wallet-with-merchant-payment/
 │   │                           ├── unit/
 │   │                           └── integration/
 │   └── README.md
-│
+
+
+
 ├── merchant-app/
 │   ├── settings.gradle
 │   ├── build.gradle
@@ -794,19 +801,27 @@ mobile-wallet-with-merchant-payment/
 │   │                           ├── unit/
 │   │                           └── integration/
 │   └── README.md
-│
+
+
+
 ├── database/
 │   ├── schema.sql
 │   ├── indexes.sql
 │   └── sample-data.sql
-│
+
+
+
 ├── postman/
 │   ├── mobile-wallet.postman_collection.json
 │   └── mobile-wallet.postman_environment.json
-│
+
+
+
 ├── nginx/
 │   └── nginx.conf
-│
+
+
+
 ├── docs/
 │   ├── architecture.md
 │   ├── api-documentation.md
@@ -820,7 +835,9 @@ mobile-wallet-with-merchant-payment/
 │       ├── er-diagram.mermaid
 │       ├── qr-payment-flow.mermaid
 │       └── authentication-flow.mermaid
-│
+
+
+
 ├── .github/
 │   └── workflows/
 │       ├── backend-ci.yml
