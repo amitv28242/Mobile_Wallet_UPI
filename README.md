@@ -21,10 +21,11 @@ A production-ready, secure, modular, and scalable full-stack digital wallet plat
 5. [Security Architecture](#security-architecture)
 6. [Project Structure](#project-structure)
 7. [Modules](#modules)
-8. [Getting Started](#getting-started)
-9. [Documentation](#documentation)
-10. [Contributing](#contributing)
-11. [License](#license)
+8. [ER Diagram](#er-diagram)
+9. [Getting Started](#getting-started)
+10. [Documentation](#documentation)
+11. [Contributing](#contributing)
+12. [License](#license)
 
 ---
 
@@ -90,133 +91,131 @@ The system consists of **four major components**:
 
 ## 🏗️ High-Level Architecture
 
-┌──────────────────────────────┐
-│ MOBILE WALLET SYSTEM │
-└──────────────────────────────┘
-
-┌──────────────────┐ ┌──────────────────┐
-│ CONSUMER APP │ │ MERCHANT APP │
-│ (Android) │ │ (Android) │
-│ │ │ │
-│ • Register │ │ • Register │
-│ • Login/OTP │ │ • Login/OTP │
-│ • Wallet │◄──────────────────►│ • Wallet │
-│ • QR Generate │ HTTPS/REST │ • QR Scan │
-│ • QR Scan │ │ • Bank Transfer │
-│ • Payments │ │ • Payments │
-│ • Cards/Banks │ │ • Recharge │
-│ • Notifications │ │ • Notifications │
-└────────┬─────────┘ └────────┬─────────┘
-│ │
-└───────────────┬───────────────────────┘
-│
-▼
-┌────────────────────────┐
-│ NGINX Reverse Proxy │
-│ HTTPS / Rate Limit │
-└────────────┬───────────┘
-│
-▼
-┌────────────────────────────────────────────────────────────┐
-│ SPRING BOOT BACKEND │
-│ │
-│ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
-│ │ Auth │ │ Wallet │ │ Payment │ │ QR │ │
-│ │ Module │ │ Module │ │ Module │ │ Module │ │
-│ └──────────┘ └──────────┘ └──────────┘ └──────────┘ │
-│ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
-│ │ Card │ │ Bank │ │ Recharge │ │ Admin │ │
-│ │ Module │ │ Module │ │ Module │ │ Module │ │
-│ └──────────┘ └──────────┘ └──────────┘ └──────────┘ │
-│ │
-│ ┌────────────────────────────────────────────────────┐ │
-│ ┌────────────────────────────────────────────────────┐ │
-│ │ Security Layer (JWT + BCrypt + AES) │ │
-│ └────────────────────────────────────────────────────┘ │
-└────────────────────────────┬───────────────────────────────┘
-│
-▼
-┌────────────────────────┐
-│ MySQL 8.4 LTS │
-│ (Persistent Store) │
-└────────────────────────┘
-▲
-│
-┌────────────────────────┐
-│ Firebase Cloud │
-│ Messaging (FCM) │
-└────────────────────────┘
-
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              MOBILE WALLET SYSTEM                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────┐              ┌──────────────────┐                   │
+│  │   CONSUMER APP   │              │   MERCHANT APP   │                   │
+│  │                  │              │                  │                   │
+│  │  - Registration  │              │  - Registration  │                   │
+│  │  - Login/OTP     │              │  - Login/OTP     │                   │
+│  │  - Wallet        │              │  - Wallet        │                   │
+│  │  - QR Generate   │◄────────────►│  - QR Scan       │                   │
+│  │  - QR Scan       │              │  - Bank Transfer │                   │
+│  │  - Payments      │              │  - Payments      │                   │
+│  │  - Cards         │              │  - Recharge      │                   │
+│  │  - Recharge      │              │  - Notifications │                   │
+│  │  - Notifications │              │                  │                   │
+│  └────────┬─────────┘              └────────┬─────────┘                   │
+│           │                                 │                             │
+│           └──────────────┬──────────────────┘                             │
+│                          │                                                │
+│                          ▼                                                │
+│              ┌───────────────────────┐                                    │
+│              │    NGINX Reverse      │                                    │
+│              │    Proxy / Gateway    │                                    │
+│              └───────────┬───────────┘                                    │
+│                          │                                                │
+│                          ▼                                                │
+│  ┌───────────────────────────────────────────────────────────────────┐   │
+│  │                      SPRING BOOT BACKEND                         │   │
+│  │                                                                  │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │   │
+│  │  │   AUTH      │  │   WALLET    │  │   PAYMENT   │            │   │
+│  │  │  MODULE     │  │   MODULE    │  │   MODULE    │            │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘            │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │   │
+│  │  │   QR        │  │   CARD      │  │   BANK      │            │   │
+│  │  │  MODULE     │  │   MODULE    │  │   MODULE    │            │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘            │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │   │
+│  │  │  RECHARGE   │  │ NOTIFICA-   │  │   ADMIN     │            │   │
+│  │  │  MODULE     │  │  TION MOD   │  │   MODULE    │            │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘            │   │
+│  │                                                                  │   │
+│  │  ┌─────────────────────────────────────────────────────────┐    │   │
+│  │  │              SECURITY & JWT LAYER                      │    │   │
+│  │  └─────────────────────────────────────────────────────────┘    │   │
+│  └───────────────────────────────────────────────────────────────────┘   │
+│                                    │                                     │
+│                                    ▼                                     │
+│                    ┌─────────────────────────────┐                       │
+│                    │         MYSQL 8.x           │                       │
+│                    │    DATABASE SERVER          │                       │
+│                    └─────────────────────────────┘                       │
+│                                    ▲                                     │
+│                                    │                                     │
+│                    ┌─────────────────────────────┐                       │
+│                    │  FIREBASE CLOUD MESSAGING  │                       │
+│                    │  & EXTERNAL SERVICES        │                       │
+│                    └─────────────────────────────┘                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 
 ---
 
 ## 🧩 Component Diagram
 
-┌─────────────────────────────────────────────────────────────────────────┐
-│ COMPONENT DIAGRAM │
-├─────────────────────────────────────────────────────────────────────────┤
-│ │
-│ ┌──────────────────────────────────────────────────────────────────┐ │
-│ │ PRESENTATION LAYER │ │
-│ │ │ │
-│ │ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ │ │
-│ │ │ Consumer │ │ Merchant │ │ Swagger UI │ │ │
-│ │ │ Android App │ │ Android App │ │ (OpenAPI) │ │ │
-│ │ └──────┬───────┘ └──────┬───────┘ └──────┬───────┘ │ │
-│ └─────────┼─────────────────┼─────────────────┼──────────────────┘ │
-│ │ │ │ │
-│ └─────────────────┼─────────────────┘ │
-│ │ HTTPS / REST │
-│ ▼ │
-│ ┌──────────────────────────────────────────────────────────────────┐ │
-│ │ CONTROLLER LAYER │ │
-│ │ │ │
-│ │ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ │ │
-│ │ │ Auth │ │ Wallet │ │Payment │ │ QR │ │ Card │ │ │
-│ │ │ Ctrl │ │ Ctrl │ │ Ctrl │ │ Ctrl │ │ Ctrl │ │ │
-│ │ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘ │ │
-│ │ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ │ │
-│ │ │ Bank │ │Recharge│ │Notify │ │ Admin │ │ Auth/ │ │ │
-│ │ │ Ctrl │ │ Ctrl │ │ Ctrl │ │ Ctrl │ │ Guest │ │ │
-│ │ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘ │ │
-│ └──────────────────────────────┬───────────────────────────────────┘ │
-│ │ │
-│ ▼ │
-│ ┌──────────────────────────────────────────────────────────────────┐ │
-│ │ SERVICE LAYER │ │
-│ │ │ │
-│ │ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ │ │
-│ │ │ Auth │ │ Wallet │ │Payment │ │ QR │ │ Card │ │ │
-│ │ │Service │ │Service │ │Service │ │Service │ │Service │ │ │
-│ │ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘ │ │
-│ │ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ │ │
-│ │ │ Bank │ │Recharge│ │Notify │ │ OTP │ │ Admin │ │ │
-│ │ │Service │ │Service │ │Service │ │Service │ │Service │ │ │
-│ │ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘ │ │
-│ └──────────────────────────────┬───────────────────────────────────┘ │
-│ │ │
-│ ▼ │
-│ ┌──────────────────────────────────────────────────────────────────┐ │
-│ │ REPOSITORY LAYER │ │
-│ │ │ │
-│ │ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ │ │
-│ │ │ User │ │ Wallet │ │Payment │ │ QR │ │ Card │ │ │
-│ │ │ Repo │ │ Repo │ │ Repo │ │ Repo │ │ Repo │ │ │
-│ │ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘ │ │
-│ │ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ │ │
-│ │ │ Bank │ │ Audit │ │Notify │ │ OTP │ │Refresh │ │ │
-│ │ │ Repo │ │ Repo │ │ Repo │ │ Repo │ │ Token │ │ │
-│ │ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘ │ │
-│ └──────────────────────────────┬───────────────────────────────────┘ │
-│ │ │
-│ ▼ │
-│ ┌──────────────────────────────────────────────────────────────────┐ │
-│ │ DATABASE LAYER │ │
-│ │ MySQL 8.4 LTS │ │
-│ └──────────────────────────────────────────────────────────────────┘ │
-│ │
-└─────────────────────────────────────────────────────────────────────────┘
-
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           COMPONENT DIAGRAM                               │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  ┌──────────────────────────────────────────────────────────────────┐     │
+│  │                     PRESENTATION LAYER                            │     │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │     │
+│  │  │   Consumer   │  │   Merchant   │  │   Swagger    │         │     │
+│  │  │   Android    │  │   Android    │  │   API Docs   │         │     │
+│  │  │   App        │  │   App        │  │              │         │     │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘         │     │
+│  └──────────────────────────────────────────────────────────────────┘     │
+│                                    │                                      │
+│                                    ▼                                      │
+│  ┌──────────────────────────────────────────────────────────────────┐     │
+│  │                     CONTROLLER LAYER                             │     │
+│  │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐ │     │
+│  │  │   Auth     │ │   Wallet   │ │  Payment   │ │    QR      │ │     │
+│  │  │ Controller │ │ Controller │ │ Controller │ │ Controller │ │     │
+│  │  └────────────┘ └────────────┘ └────────────┘ └────────────┘ │     │
+│  │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐ │     │
+│  │  │   Card     │ │   Bank     │ │  Recharge  │ │   Admin    │ │     │
+│  │  │ Controller │ │ Controller │ │ Controller │ │ Controller │ │     │
+│  │  └────────────┘ └────────────┘ └────────────┘ └────────────┘ │     │
+│  └──────────────────────────────────────────────────────────────────┘     │
+│                                    │                                      │
+│                                    ▼                                      │
+│  ┌──────────────────────────────────────────────────────────────────┐     │
+│  │                     SERVICE LAYER                                │     │
+│  │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐ │     │
+│  │  │   Auth     │ │   Wallet   │ │  Payment   │ │    QR      │ │     │
+│  │  │  Service   │ │  Service   │ │  Service   │ │  Service   │ │     │
+│  │  └────────────┘ └────────────┘ └────────────┘ └────────────┘ │     │
+│  │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐ │     │
+│  │  │   Card     │ │   Bank     │ │  Recharge  │ │   Admin    │ │     │
+│  │  │  Service   │ │  Service   │ │  Service   │ │  Service   │ │     │
+│  │  └────────────┘ └────────────┘ └────────────┘ └────────────┘ │     │
+│  └──────────────────────────────────────────────────────────────────┘     │
+│                                    │                                      │
+│                                    ▼                                      │
+│  ┌──────────────────────────────────────────────────────────────────┐     │
+│  │                     REPOSITORY LAYER                             │     │
+│  │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐ │     │
+│  │  │   User     │ │   Wallet   │ │  Payment   │ │    QR      │ │     │
+│  │  │ Repository │ │ Repository │ │ Repository │ │ Repository │ │     │
+│  │  └────────────┘ └────────────┘ └────────────┘ └────────────┘ │     │
+│  │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐ │     │
+│  │  │   Card     │ │   Bank     │ │  Notifica- │ │   Audit    │ │     │
+│  │  │ Repository │ │ Repository │ │  tion Rep  │ │  Log Rep   │ │     │
+│  │  └────────────┘ └────────────┘ └────────────┘ └────────────┘ │     │
+│  └──────────────────────────────────────────────────────────────────┘     │
+│                                    │                                      │
+│                                    ▼                                      │
+│  ┌──────────────────────────────────────────────────────────────────┐     │
+│  │                     DATABASE LAYER                               │     │
+│  │                       MySQL 8.x                                  │     │
+│  └──────────────────────────────────────────────────────────────────┘     │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
 
 
 ---
@@ -276,72 +275,68 @@ The system consists of **four major components**:
 
 ## 🔐 Security Architecture
 
-┌─────────────────────────────────────────────────────────────────────────┐
-│ SECURITY ARCHITECTURE │
-├─────────────────────────────────────────────────────────────────────────┤
-│ │
-│ ┌───────────────────────────────────────────────────────────────────┐ │
-│ │ AUTHENTICATION LAYER │ │
-│ │ │ │
-│ │ ┌────────────┐ ┌────────────┐ ┌───────────────────────────┐ │ │
-│ │ │ Registration │ │ Login │ │ OTP Verification (SMS) │ │ │
-│ │ │ (BCrypt) │ │ (JWT) │ │ (SecureRandom 6-digit) │ │ │
-│ │ └────────────┘ └────────────┘ └───────────────────────────┘ │ │
-│ │ │ │
-│ │ ┌──────────────────────────────────────────────────────────┐ │ │
-│ │ │ JWT Token Management │ │ │
-│ │ │ • Access Token — 15 minutes │ │ │
-│ │ │ • Refresh Token — 7 days │ │ │
-│ │ │ • HMAC-SHA256 Signature │ │ │
-│ │ │ • Role Claims: ROLE_CONSUMER / ROLE_MERCHANT / ROLE_ADMIN│ │ │
-│ │ └──────────────────────────────────────────────────────────┘ │ │
-│ └───────────────────────────────────────────────────────────────────┘ │
-│ │ │
-│ ▼ │
-│ ┌───────────────────────────────────────────────────────────────────┐ │
-│ │ AUTHORIZATION LAYER │ │
-│ │ │ │
-│ │ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ │ │
-│ │ │ROLE_CONSUMER │ │ROLE_MERCHANT │ │ ROLE_ADMIN │ │ │
-│ │ └──────────────┘ └──────────────┘ └──────────────┘ │ │
-│ │ │ │
-│ │ Method-Level Security: @PreAuthorize("hasRole('CONSUMER')") │ │
-│ │ Endpoint Protection: .requestMatchers("/admin/**").hasRole() │ │
-│ └───────────────────────────────────────────────────────────────────┘ │
-│ │ │
-│ ▼ │
-│ ┌───────────────────────────────────────────────────────────────────┐ │
-│ │ DATA SECURITY LAYER │ │
-│ │ │ │
-│ │ ┌────────────┐ ┌────────────┐ ┌─────────────────────────┐ │ │
-│ │ │ Password │ │ Sensitive │ │ Audit Logging │ │ │
-│ │ │ Hashing │ │ Data │ │ (Financial Ops) │ │ │
-│ │ │ (BCrypt 12)│ │ Encryption │ │ │ │ │
-│ │ │ │ │ (AES-256) │ │ │ │ │
-│ │ └────────────┘ └────────────┘ └─────────────────────────┘ │ │
-│ │ │ │
-│ │ ┌───────────────────────────────────────────────────────────┐ │ │
-│ │ │ Transactional Integrity & Locking │ │ │
-│ │ │ • Pessimistic Locking — Wallet balance updates │ │ │
-│ │ │ • Optimistic Locking — Version-based concurrency │ │ │
-│ │ │ • Atomic @Transactional — ACID compliance │ │ │
-│ │ │ • Idempotency Keys — Duplicate payment prevention │ │ │
-│ │ └───────────────────────────────────────────────────────────┘ │ │
-│ └───────────────────────────────────────────────────────────────────┘ │
-│ │ │
-│ ▼ │
-│ ┌───────────────────────────────────────────────────────────────────┐ │
-│ │ TRANSPORT SECURITY │ │
-│ │ │ │
-│ │ • HTTPS/TLS 1.3 (enforced via Nginx) │ │
-│ │ • JWT transmission over HTTPS only │ │
-│ │ • Security Headers: HSTS, X-Content-Type-Options, X-Frame-Options│ │
-│ │ • Certificate validation on Android │ │
-│ │ • Network Security Config (no cleartext in production) │ │
-│ └───────────────────────────────────────────────────────────────────┘ │
-│ │
-└─────────────────────────────────────────────────────────────────────────┘
-
+┌────────────────────────────────────────────────────────────────────────────┐
+│                         SECURITY ARCHITECTURE                             │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  ┌──────────────────────────────────────────────────────────────────┐     │
+│  │                     AUTHENTICATION LAYER                          │     │
+│  │                                                                  │     │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │     │
+│  │  │ Registration │  │  Login       │  │  OTP Verification    │ │     │
+│  │  │ (BCrypt)     │  │  (JWT)       │  │  (Secure Random)    │ │     │
+│  │  └──────────────┘  └──────────────┘  └──────────────────────┘ │     │
+│  │                                                                  │     │
+│  │  ┌──────────────────────────────────────────────────────────┐   │     │
+│  │  │              JWT Token Management                        │   │     │
+│  │  │  - Access Token (15 min)  - Refresh Token (7 days)     │   │     │
+│  │  │  - Role-Based Claims      - Token Validation Filter    │   │     │
+│  │  └──────────────────────────────────────────────────────────┘   │     │
+│  └──────────────────────────────────────────────────────────────────┘     │
+│                                    │                                      │
+│                                    ▼                                      │
+│  ┌──────────────────────────────────────────────────────────────────┐     │
+│  │                     AUTHORIZATION LAYER                          │     │
+│  │                                                                  │     │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │     │
+│  │  │ ROLE_        │  │ ROLE_        │  │ ROLE_ADMIN          │ │     │
+│  │  │ CONSUMER     │  │ MERCHANT     │  │                      │ │     │
+│  │  └──────────────┘  └──────────────┘  └──────────────────────┘ │     │
+│  │                                                                  │     │
+│  │  ┌──────────────────────────────────────────────────────────┐   │     │
+│  │  │              Method-Level Security (@PreAuthorize)       │   │     │
+│  │  └──────────────────────────────────────────────────────────┘   │     │
+│  └──────────────────────────────────────────────────────────────────┘     │
+│                                    │                                      │
+│                                    ▼                                      │
+│  ┌──────────────────────────────────────────────────────────────────┐     │
+│  │                     DATA SECURITY LAYER                         │     │
+│  │                                                                  │     │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │     │
+│  │  │ Password     │  │ Sensitive    │  │ Audit Logging        │ │     │
+│  │  │ Hashing      │  │ Data         │  │ (Financial Ops)      │ │     │
+│  │  │ (BCrypt)     │  │ Encryption   │  │                      │ │     │
+│  │  │              │  │ (AES)        │  │                      │ │     │
+│  │  └──────────────┘  └──────────────┘  └──────────────────────┘ │     │
+│  │                                                                  │     │
+│  │  ┌──────────────────────────────────────────────────────────┐   │     │
+│  │  │        Transactional Integrity & Locking                │   │     │
+│  │  │  - Optimistic Locking for Wallets                       │   │     │
+│  │  │  - Atomic Database Transactions                         │   │     │
+│  │  │  - Idempotency Keys for Payments                        │   │     │
+│  │  └──────────────────────────────────────────────────────────┘   │     │
+│  └──────────────────────────────────────────────────────────────────┘     │
+│                                    │                                      │
+│                                    ▼                                      │
+│  ┌──────────────────────────────────────────────────────────────────┐     │
+│  │                     TRANSPORT SECURITY                           │     │
+│  │                                                                  │     │
+│  │  - HTTPS/TLS 1.3                                                │     │
+│  │  - JWT Transmission over HTTPS                                  │     │
+│  │  - Secure Headers (HSTS, XSS Protection, etc.)                  │     │
+│  └──────────────────────────────────────────────────────────────────┘     │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
 
 ### Security Measures Summary
 
@@ -364,94 +359,680 @@ The system consists of **four major components**:
 
 ---
 
+##  ER Diagram
+
+erDiagram
+    User ||--|| Wallet : has
+    User ||--o{ Card : has
+    User ||--o{ BankAccount : has
+    User ||--o{ Payment : initiates
+    User ||--o{ Notification : receives
+    User ||--o{ RefreshToken : has
+    User ||--o{ OTPVerification : has
+    User ||--o{ QRTransaction : generates
+    
+    Merchant ||--|| User : is
+    Merchant ||--|| Wallet : has
+    
+    QRTransaction ||--o{ Payment : results_in
+    Wallet ||--o{ Payment : participates
+    Payment ||--|| TransactionHistory : records
+    
+    User ||--o{ BillPayment : pays
+    User ||--o{ RechargeTransaction : performs
+    
+    Admin ||--o{ AuditLog : creates
+    User ||--o{ AuditLog : subject_of
+
+    User {
+        bigint id PK
+        string username UK
+        string email UK
+        string phone UK
+        string password_hash
+        string first_name
+        string last_name
+        string role
+        boolean enabled
+        boolean locked
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    Merchant {
+        bigint id PK
+        bigint user_id FK
+        string business_name
+        string business_type
+        string gst_number
+        string business_address
+        string business_phone
+        boolean verified
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    Wallet {
+        bigint id PK
+        bigint user_id FK
+        decimal balance
+        decimal currency
+        string wallet_number UK
+        string status
+        int version
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    Card {
+        bigint id PK
+        bigint user_id FK
+        string card_number_masked
+        string cardholder_name
+        string expiry_month
+        string expiry_year
+        string issuer
+        string last_four
+        string encrypted_data
+        boolean is_default
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    BankAccount {
+        bigint id PK
+        bigint user_id FK
+        string account_number_masked
+        string ifsc_code
+        string bank_name
+        string account_holder_name
+        string encrypted_data
+        boolean is_default
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    Payment {
+        bigint id PK
+        bigint payer_id FK
+        bigint payee_id FK
+        bigint wallet_id FK
+        decimal amount
+        string payment_type
+        string status
+        string reference_id UK
+        string description
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    QRTransaction {
+        bigint id PK
+        bigint user_id FK
+        string qr_token UK
+        string qr_payload
+        decimal amount
+        string status
+        timestamp expires_at
+        timestamp created_at
+    }
+    
+    TransactionHistory {
+        bigint id PK
+        bigint payment_id FK
+        bigint wallet_id FK
+        decimal amount
+        string transaction_type
+        string status
+        string reference
+        decimal balance_before
+        decimal balance_after
+        timestamp created_at
+    }
+    
+    Notification {
+        bigint id PK
+        bigint user_id FK
+        string title
+        string message
+        string type
+        boolean is_read
+        string data
+        timestamp created_at
+    }
+    
+    RefreshToken {
+        bigint id PK
+        bigint user_id FK
+        string token UK
+        timestamp expires_at
+        timestamp created_at
+    }
+    
+    OTPVerification {
+        bigint id PK
+        bigint user_id FK
+        string otp_code
+        string identifier
+        string purpose
+        int attempts
+        boolean verified
+        timestamp expires_at
+        timestamp created_at
+    }
+    
+    BillPayment {
+        bigint id PK
+        bigint user_id FK
+        string bill_type
+        string biller_code
+        string consumer_number
+        decimal amount
+        string status
+        string reference_id UK
+        timestamp due_date
+        timestamp created_at
+    }
+    
+    RechargeTransaction {
+        bigint id PK
+        bigint user_id FK
+        string operator
+        string phone_number
+        decimal amount
+        string status
+        string reference_id UK
+        timestamp created_at
+    }
+    
+    Admin {
+        bigint id PK
+        bigint user_id FK
+        string admin_level
+        timestamp last_login
+        timestamp created_at
+    }
+    
+    AuditLog {
+        bigint id PK
+        bigint admin_id FK
+        bigint user_id FK
+        string action
+        string details
+        string ip_address
+        timestamp created_at
+    }
+
 ## 📁 Project Structure
 
 mobile-wallet-with-merchant-payment/
 │
-├── backend/ # Spring Boot REST API
-│ ├── pom.xml
-│ ├── Dockerfile
-│ ├── docker-compose.yml
-│ ├── src/
-│ │ ├── main/
-│ │ │ ├── java/com/mobilewallet/
-│ │ │ │ ├── config/
-│ │ │ │ ├── controller/
-│ │ │ │ ├── dto/
-│ │ │ │ ├── entity/
-│ │ │ │ ├── exception/
-│ │ │ │ ├── mapper/
-│ │ │ │ ├── repository/
-│ │ │ │ ├── security/
-│ │ │ │ ├── service/
-│ │ │ │ ├── service/impl/
-│ │ │ │ ├── util/
-│ │ │ │ └── validator/
-│ │ │ └── resources/
-│ │ │ ├── application.properties
-│ │ │ ├── application-dev.properties
-│ │ │ ├── application-test.properties
-│ │ │ └── application-prod.properties
-│ │ └── test/
-│ └── README.md # ← Backend README
+├── backend/
+│   ├── pom.xml
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── .dockerignore
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/
+│   │   │   │   └── com/
+│   │   │   │       └── mobilewallet/
+│   │   │   │           ├── MobileWalletApplication.java
+│   │   │   │           ├── config/
+│   │   │   │           │   ├── AppConfig.java
+│   │   │   │           │   ├── AsyncConfig.java
+│   │   │   │           │   ├── CorsConfig.java
+│   │   │   │           │   ├── FirebaseConfig.java
+│   │   │   │           │   ├── OpenApiConfig.java
+│   │   │   │           │   ├── PasswordConfig.java
+│   │   │   │           │   ├── SecurityConfig.java
+│   │   │   │           │   └── WebConfig.java
+│   │   │   │           ├── controller/
+│   │   │   │           │   ├── AdminController.java
+│   │   │   │           │   ├── AuthController.java
+│   │   │   │           │   ├── BankAccountController.java
+│   │   │   │           │   ├── CardController.java
+│   │   │   │           │   ├── NotificationController.java
+│   │   │   │           │   ├── PaymentController.java
+│   │   │   │           │   ├── QRController.java
+│   │   │   │           │   ├── RechargeController.java
+│   │   │   │           │   └── WalletController.java
+│   │   │   │           ├── dto/
+│   │   │   │           │   ├── admin/
+│   │   │   │           │   │   ├── AdminDashboardDTO.java
+│   │   │   │           │   │   ├── AdminUserDTO.java
+│   │   │   │           │   │   ├── BlockUserRequest.java
+│   │   │   │           │   │   └── ReportDTO.java
+│   │   │   │           │   ├── auth/
+│   │   │   │           │   │   ├── AuthRequest.java
+│   │   │   │           │   │   ├── AuthResponse.java
+│   │   │   │           │   │   ├── GuestLoginRequest.java
+│   │   │   │           │   │   ├── GuestLoginResponse.java
+│   │   │   │           │   │   ├── OTPRequest.java
+│   │   │   │           │   │   ├── OTPResponse.java
+│   │   │   │           │   │   ├── RefreshTokenRequest.java
+│   │   │   │           │   │   ├── RegisterRequest.java
+│   │   │   │           │   │   └── RegisterResponse.java
+│   │   │   │           │   ├── bank/
+│   │   │   │           │   │   ├── BankAccountRequest.java
+│   │   │   │           │   │   ├── BankAccountResponse.java
+│   │   │   │           │   │   └── BankTransferRequest.java
+│   │   │   │           │   ├── card/
+│   │   │   │           │   │   ├── CardRequest.java
+│   │   │   │           │   │   └── CardResponse.java
+│   │   │   │           │   ├── notification/
+│   │   │   │           │   │   ├── NotificationResponse.java
+│   │   │   │           │   │   └── NotificationStatusRequest.java
+│   │   │   │           │   ├── payment/
+│   │   │   │           │   │   ├── PaymentInitiateRequest.java
+│   │   │   │           │   │   ├── PaymentResponse.java
+│   │   │   │           │   │   └── PaymentStatusResponse.java
+│   │   │   │           │   ├── qr/
+│   │   │   │           │   │   ├── QRGenerateRequest.java
+│   │   │   │           │   │   ├── QRGenerateResponse.java
+│   │   │   │           │   │   ├── QRScanRequest.java
+│   │   │   │           │   │   └── QRVerifyRequest.java
+│   │   │   │           │   ├── recharge/
+│   │   │   │           │   │   ├── BillPaymentRequest.java
+│   │   │   │           │   │   ├── BillPaymentResponse.java
+│   │   │   │           │   │   ├── RechargeRequest.java
+│   │   │   │           │   │   └── RechargeResponse.java
+│   │   │   │           │   ├── transaction/
+│   │   │   │           │   │   ├── TransactionDTO.java
+│   │   │   │           │   │   └── TransactionListResponse.java
+│   │   │   │           │   └── wallet/
+│   │   │   │           │       ├── AddMoneyRequest.java
+│   │   │   │           │       ├── AddMoneyResponse.java
+│   │   │   │           │       ├── WalletBalanceResponse.java
+│   │   │   │           │       └── WalletResponse.java
+│   │   │   │           ├── entity/
+│   │   │   │           │   ├── Admin.java
+│   │   │   │           │   ├── AuditLog.java
+│   │   │   │           │   ├── BankAccount.java
+│   │   │   │           │   ├── BillPayment.java
+│   │   │   │           │   ├── Card.java
+│   │   │   │           │   ├── Merchant.java
+│   │   │   │           │   ├── Notification.java
+│   │   │   │           │   ├── OTPVerification.java
+│   │   │   │           │   ├── Payment.java
+│   │   │   │           │   ├── QRTransaction.java
+│   │   │   │           │   ├── RechargeTransaction.java
+│   │   │   │           │   ├── RefreshToken.java
+│   │   │   │           │   ├── TransactionHistory.java
+│   │   │   │           │   ├── User.java
+│   │   │   │           │   └── Wallet.java
+│   │   │   │           ├── exception/
+│   │   │   │           │   ├── ApiError.java
+│   │   │   │           │   ├── ApiException.java
+│   │   │   │           │   ├── DuplicatePaymentException.java
+│   │   │   │           │   ├── GlobalExceptionHandler.java
+│   │   │   │           │   ├── InsufficientBalanceException.java
+│   │   │   │           │   ├── InvalidOTPException.java
+│   │   │   │           │   ├── InvalidQRException.java
+│   │   │   │           │   ├── JwtAuthenticationException.java
+│   │   │   │           │   ├── ResourceNotFoundException.java
+│   │   │   │           │   └── UnauthorizedAccessException.java
+│   │   │   │           ├── mapper/
+│   │   │   │           │   ├── BankAccountMapper.java
+│   │   │   │           │   ├── CardMapper.java
+│   │   │   │           │   ├── PaymentMapper.java
+│   │   │   │           │   ├── TransactionMapper.java
+│   │   │   │           │   └── WalletMapper.java
+│   │   │   │           ├── repository/
+│   │   │   │           │   ├── AdminRepository.java
+│   │   │   │           │   ├── AuditLogRepository.java
+│   │   │   │           │   ├── BankAccountRepository.java
+│   │   │   │           │   ├── BillPaymentRepository.java
+│   │   │   │           │   ├── CardRepository.java
+│   │   │   │           │   ├── MerchantRepository.java
+│   │   │   │           │   ├── NotificationRepository.java
+│   │   │   │           │   ├── OTPVerificationRepository.java
+│   │   │   │           │   ├── PaymentRepository.java
+│   │   │   │           │   ├── QRTransactionRepository.java
+│   │   │   │           │   ├── RechargeTransactionRepository.java
+│   │   │   │           │   ├── RefreshTokenRepository.java
+│   │   │   │           │   ├── TransactionHistoryRepository.java
+│   │   │   │           │   ├── UserRepository.java
+│   │   │   │           │   └── WalletRepository.java
+│   │   │   │           ├── security/
+│   │   │   │           │   ├── JwtAuthenticationEntryPoint.java
+│   │   │   │           │   ├── JwtAuthenticationFilter.java
+│   │   │   │           │   ├── JwtTokenProvider.java
+│   │   │   │           │   ├── Role.java
+│   │   │   │           │   ├── SecurityConstants.java
+│   │   │   │           │   ├── SecurityUtils.java
+│   │   │   │           │   └── UserPrincipal.java
+│   │   │   │           ├── service/
+│   │   │   │           │   ├── AdminService.java
+│   │   │   │           │   ├── AuthService.java
+│   │   │   │           │   ├── BankAccountService.java
+│   │   │   │           │   ├── CardService.java
+│   │   │   │           │   ├── NotificationService.java
+│   │   │   │           │   ├── OTPService.java
+│   │   │   │           │   ├── PaymentService.java
+│   │   │   │           │   ├── QRService.java
+│   │   │   │           │   ├── RechargeService.java
+│   │   │   │           │   └── WalletService.java
+│   │   │   │           ├── service/impl/
+│   │   │   │           │   ├── AdminServiceImpl.java
+│   │   │   │           │   ├── AuthServiceImpl.java
+│   │   │   │           │   ├── BankAccountServiceImpl.java
+│   │   │   │           │   ├── CardServiceImpl.java
+│   │   │   │           │   ├── NotificationServiceImpl.java
+│   │   │   │           │   ├── OTPServiceImpl.java
+│   │   │   │           │   ├── PaymentServiceImpl.java
+│   │   │   │           │   ├── QRServiceImpl.java
+│   │   │   │           │   ├── RechargeServiceImpl.java
+│   │   │   │           │   └── WalletServiceImpl.java
+│   │   │   │           ├── util/
+│   │   │   │           │   ├── AESEncryptionUtil.java
+│   │   │   │           │   ├── AuditUtil.java
+│   │   │   │           │   ├── DateUtil.java
+│   │   │   │           │   ├── QRCodeGenerator.java
+│   │   │   │           │   ├── QRCodeParser.java
+│   │   │   │           │   ├── ReferenceNumberGenerator.java
+│   │   │   │           │   └── ValidationUtil.java
+│   │   │   │           └── validator/
+│   │   │   │               ├── PhoneValidator.java
+│   │   │   │               └── TransactionValidator.java
+│   │   │   └── resources/
+│   │   │       ├── application.properties
+│   │   │       ├── application-dev.properties
+│   │   │       ├── application-test.properties
+│   │   │       ├── application-prod.properties
+│   │   │       ├── firebase/
+│   │   │       │   └── service-account.json.example
+│   │   │       └── db/
+│   │   │           ├── schema.sql
+│   │   │           ├── indexes.sql
+│   │   │           └── sample-data.sql
+│   │   └── test/
+│   │       ├── java/
+│   │       │   └── com/
+│   │       │       └── mobilewallet/
+│   │       │           ├── config/
+│   │       │           ├── controller/
+│   │       │           ├── integration/
+│   │       │           ├── repository/
+│   │       │           └── service/
+│   │       └── resources/
+│   │           └── application-test.properties
+│   └── README.md
 │
-├── consumer-app/ # Consumer Android App
-│ ├── app/
-│ │ ├── build.gradle
-│ │ └── src/main/
-│ │ ├── AndroidManifest.xml
-│ │ ├── java/com/mobilewallet/consumer/
-│ │ │ ├── activities/
-│ │ │ ├── adapters/
-│ │ │ ├── api/
-│ │ │ ├── fragments/
-│ │ │ ├── models/
-│ │ │ ├── notifications/
-│ │ │ ├── repository/
-│ │ │ ├── utils/
-│ │ │ └── viewmodels/
-│ │ └── res/
-│ │ ├── drawable/
-│ │ ├── layout/
-│ │ ├── menu/
-│ │ ├── values/
-│ │ └── xml/
-│ └── README.md # ← Consumer App README
+├── consumer-app/
+│   ├── settings.gradle
+│   ├── build.gradle
+│   ├── gradle.properties
+│   ├── gradle/
+│   │   └── wrapper/
+│   │       ├── gradle-wrapper.jar
+│   │       └── gradle-wrapper.properties
+│   ├── app/
+│   │   ├── build.gradle
+│   │   └── src/
+│   │       ├── main/
+│   │       │   ├── AndroidManifest.xml
+│   │       │   ├── java/
+│   │       │   │   └── com/
+│   │       │   │       └── mobilewallet/
+│   │       │   │           └── consumer/
+│   │       │   │               ├── ConsumerApplication.java
+│   │       │   │               ├── activities/
+│   │       │   │               │   ├── DashboardActivity.java
+│   │       │   │               │   ├── LoginActivity.java
+│   │       │   │               │   ├── MainActivity.java
+│   │       │   │               │   ├── OTPActivity.java
+│   │       │   │               │   ├── PaymentConfirmationActivity.java
+│   │       │   │               │   ├── PaymentSuccessActivity.java
+│   │       │   │               │   ├── ProfileActivity.java
+│   │       │   │               │   ├── QRGeneratorActivity.java
+│   │       │   │               │   ├── QRScannerActivity.java
+│   │       │   │               │   ├── RechargeActivity.java
+│   │       │   │               │   ├── RegisterActivity.java
+│   │       │   │               │   ├── SettingsActivity.java
+│   │       │   │               │   ├── SplashActivity.java
+│   │       │   │               │   ├── TransactionDetailsActivity.java
+│   │       │   │               │   └── WalletActivity.java
+│   │       │   │               ├── adapters/
+│   │       │   │               │   ├── NotificationAdapter.java
+│   │       │   │               │   ├── TransactionAdapter.java
+│   │       │   │               │   └── CardAdapter.java
+│   │       │   │               ├── api/
+│   │       │   │               │   ├── ApiClient.java
+│   │       │   │               │   ├── ApiInterface.java
+│   │       │   │               │   └── ApiResponse.java
+│   │       │   │               ├── fragments/
+│   │       │   │               │   ├── BillsFragment.java
+│   │       │   │               │   ├── CardsFragment.java
+│   │       │   │               │   ├── HomeFragment.java
+│   │       │   │               │   ├── NotificationsFragment.java
+│   │       │   │               │   ├── ProfileFragment.java
+│   │       │   │               │   └── TransactionsFragment.java
+│   │       │   │               ├── models/
+│   │       │   │               │   ├── BankAccount.java
+│   │       │   │               │   ├── Card.java
+│   │       │   │               │   ├── Notification.java
+│   │       │   │               │   ├── Payment.java
+│   │       │   │               │   ├── QR.java
+│   │       │   │               │   ├── Transaction.java
+│   │       │   │               │   ├── User.java
+│   │       │   │               │   └── Wallet.java
+│   │       │   │               ├── repository/
+│   │       │   │               │   └── AppRepository.java
+│   │       │   │               ├── utils/
+│   │       │   │               │   ├── Constants.java
+│   │       │   │               │   ├── NetworkUtils.java
+│   │       │   │               │   ├── PermissionUtils.java
+│   │       │   │               │   ├── PreferenceManager.java
+│   │       │   │               │   ├── QRCodeGenerator.java
+│   │       │   │               │   ├── QRCodeScanner.java
+│   │       │   │               │   └── TokenManager.java
+│   │       │   │               ├── viewmodels/
+│   │       │   │               │   ├── AuthViewModel.java
+│   │       │   │               │   ├── DashboardViewModel.java
+│   │       │   │               │   ├── PaymentViewModel.java
+│   │       │   │               │   ├── QRViewModel.java
+│   │       │   │               │   ├── TransactionViewModel.java
+│   │       │   │               │   └── WalletViewModel.java
+│   │       │   │               └── notifications/
+│   │       │   │                   └── FCMService.java
+│   │       │   └── res/
+│   │       │       ├── drawable/
+│   │       │       ├── drawable-v24/
+│   │       │       ├── layout/
+│   │       │       │   ├── activity_dashboard.xml
+│   │       │       │   ├── activity_login.xml
+│   │       │       │   ├── activity_main.xml
+│   │       │       │   ├── activity_otp.xml
+│   │       │       │   ├── activity_payment_confirmation.xml
+│   │       │       │   ├── activity_payment_success.xml
+│   │       │       │   ├── activity_profile.xml
+│   │       │       │   ├── activity_qr_generator.xml
+│   │       │       │   ├── activity_qr_scanner.xml
+│   │       │       │   ├── activity_recharge.xml
+│   │       │       │   ├── activity_register.xml
+│   │       │       │   ├── activity_settings.xml
+│   │       │       │   ├── activity_splash.xml
+│   │       │       │   ├── activity_transaction_details.xml
+│   │       │       │   ├── activity_wallet.xml
+│   │       │       │   ├── fragment_bills.xml
+│   │       │       │   ├── fragment_cards.xml
+│   │       │       │   ├── fragment_home.xml
+│   │       │       │   ├── fragment_notifications.xml
+│   │       │       │   ├── fragment_profile.xml
+│   │       │       │   ├── fragment_transactions.xml
+│   │       │       │   ├── item_notification.xml
+│   │       │       │   ├── item_transaction.xml
+│   │       │       │   └── item_card.xml
+│   │       │       ├── menu/
+│   │       │       │   └── bottom_nav_menu.xml
+│   │       │       ├── values/
+│   │       │       │   ├── colors.xml
+│   │       │       │   ├── strings.xml
+│   │       │       │   ├── themes.xml
+│   │       │       │   └── dimens.xml
+│   │       │       └── xml/
+│   │       │           ├── network_security_config.xml
+│   │       │           └── data_extraction_rules.xml
+│   │       └── test/
+│   │           └── java/
+│   │               └── com/
+│   │                   └── mobilewallet/
+│   │                       └── consumer/
+│   │                           ├── unit/
+│   │                           └── integration/
+│   └── README.md
 │
-├── merchant-app/ # Merchant Android App
-│ ├── app/
-│ └── README.md
+├── merchant-app/
+│   ├── settings.gradle
+│   ├── build.gradle
+│   ├── gradle.properties
+│   ├── gradle/
+│   │   └── wrapper/
+│   │       ├── gradle-wrapper.jar
+│   │       └── gradle-wrapper.properties
+│   ├── app/
+│   │   ├── build.gradle
+│   │   └── src/
+│   │       ├── main/
+│   │       │   ├── AndroidManifest.xml
+│   │       │   ├── java/
+│   │       │   │   └── com/
+│   │       │   │       └── mobilewallet/
+│   │       │   │           └── merchant/
+│   │       │   │               ├── MerchantApplication.java
+│   │       │   │               ├── activities/
+│   │       │   │               │   ├── DashboardActivity.java
+│   │       │   │               │   ├── LoginActivity.java
+│   │       │   │               │   ├── MainActivity.java
+│   │       │   │               │   ├── OTPActivity.java
+│   │       │   │               │   ├── PaymentConfirmationActivity.java
+│   │       │   │               │   ├── PaymentSuccessActivity.java
+│   │       │   │               │   ├── ProfileActivity.java
+│   │       │   │               │   ├── QRScannerActivity.java
+│   │       │   │               │   ├── RechargeActivity.java
+│   │       │   │               │   ├── RegisterActivity.java
+│   │       │   │               │   ├── SettingsActivity.java
+│   │       │   │               │   ├── SplashActivity.java
+│   │       │   │               │   ├── TransactionDetailsActivity.java
+│   │       │   │               │   ├── WalletActivity.java
+│   │       │   │               │   └── BankTransferActivity.java
+│   │       │   │               ├── adapters/
+│   │       │   │               │   ├── NotificationAdapter.java
+│   │       │   │               │   └── TransactionAdapter.java
+│   │       │   │               ├── api/
+│   │       │   │               │   ├── ApiClient.java
+│   │       │   │               │   └── ApiInterface.java
+│   │       │   │               ├── fragments/
+│   │       │   │               │   ├── BillsFragment.java
+│   │       │   │               │   ├── HomeFragment.java
+│   │       │   │               │   ├── NotificationsFragment.java
+│   │       │   │               │   ├── ProfileFragment.java
+│   │       │   │               │   └── TransactionsFragment.java
+│   │       │   │               ├── models/
+│   │       │   │               │   ├── BankAccount.java
+│   │       │   │               │   ├── Notification.java
+│   │       │   │               │   ├── Payment.java
+│   │       │   │               │   ├── Transaction.java
+│   │       │   │               │   ├── User.java
+│   │       │   │               │   └── Wallet.java
+│   │       │   │               ├── repository/
+│   │       │   │               │   └── AppRepository.java
+│   │       │   │               ├── utils/
+│   │       │   │               │   ├── Constants.java
+│   │       │   │               │   ├── NetworkUtils.java
+│   │       │   │               │   ├── PermissionUtils.java
+│   │       │   │               │   ├── PreferenceManager.java
+│   │       │   │               │   ├── QRCodeScanner.java
+│   │       │   │               │   └── TokenManager.java
+│   │       │   │               ├── viewmodels/
+│   │       │   │               │   ├── AuthViewModel.java
+│   │       │   │               │   ├── DashboardViewModel.java
+│   │       │   │               │   ├── PaymentViewModel.java
+│   │       │   │               │   ├── QRViewModel.java
+│   │       │   │               │   ├── TransactionViewModel.java
+│   │       │   │               │   └── WalletViewModel.java
+│   │       │   │               └── notifications/
+│   │       │   │                   └── FCMService.java
+│   │       │   └── res/
+│   │       │       ├── drawable/
+│   │       │       ├── drawable-v24/
+│   │       │       ├── layout/
+│   │       │       │   ├── activity_dashboard.xml
+│   │       │       │   ├── activity_login.xml
+│   │       │       │   ├── activity_main.xml
+│   │       │       │   ├── activity_otp.xml
+│   │       │       │   ├── activity_payment_confirmation.xml
+│   │       │       │   ├── activity_payment_success.xml
+│   │       │       │   ├── activity_profile.xml
+│   │       │       │   ├── activity_qr_scanner.xml
+│   │       │       │   ├── activity_recharge.xml
+│   │       │       │   ├── activity_register.xml
+│   │       │       │   ├── activity_settings.xml
+│   │       │       │   ├── activity_splash.xml
+│   │       │       │   ├── activity_transaction_details.xml
+│   │       │       │   ├── activity_wallet.xml
+│   │       │       │   ├── activity_bank_transfer.xml
+│   │       │       │   ├── fragment_bills.xml
+│   │       │       │   ├── fragment_home.xml
+│   │       │       │   ├── fragment_notifications.xml
+│   │       │       │   ├── fragment_profile.xml
+│   │       │       │   ├── fragment_transactions.xml
+│   │       │       │   ├── item_notification.xml
+│   │       │       │   └── item_transaction.xml
+│   │       │       ├── menu/
+│   │       │       │   └── bottom_nav_menu.xml
+│   │       │       ├── values/
+│   │       │       │   ├── colors.xml
+│   │       │       │   ├── strings.xml
+│   │       │       │   ├── themes.xml
+│   │       │       │   └── dimens.xml
+│   │       │       └── xml/
+│   │       │           ├── network_security_config.xml
+│   │       │           └── data_extraction_rules.xml
+│   │       └── test/
+│   │           └── java/
+│   │               └── com/
+│   │                   └── mobilewallet/
+│   │                       └── merchant/
+│   │                           ├── unit/
+│   │                           └── integration/
+│   └── README.md
 │
-├── database/ # SQL Scripts
-│ ├── schema.sql
-│ ├── indexes.sql
-│ ├── sample-data.sql
-│ └── README.md # ← Database README
+├── database/
+│   ├── schema.sql
+│   ├── indexes.sql
+│   └── sample-data.sql
 │
-├── postman/ # API Testing
-│ ├── mobile-wallet.postman_collection.json
-│ ├── mobile-wallet.postman_environment.json
-│ └── README.md # ← Postman README
+├── postman/
+│   ├── mobile-wallet.postman_collection.json
+│   └── mobile-wallet.postman_environment.json
 │
 ├── nginx/
-│ └── nginx.conf
+│   └── nginx.conf
 │
 ├── docs/
-│ ├── architecture.md
-│ ├── api-documentation.md
-│ ├── database-design.md
-│ ├── security.md
-│ └── diagrams/
+│   ├── architecture.md
+│   ├── api-documentation.md
+│   ├── database-design.md
+│   ├── security.md
+│   ├── testing.md
+│   ├── deployment.md
+│   └── diagrams/
+│       ├── system-architecture.mermaid
+│       ├── component-diagram.mermaid
+│       ├── er-diagram.mermaid
+│       ├── qr-payment-flow.mermaid
+│       └── authentication-flow.mermaid
 │
 ├── .github/
-│ └── workflows/
-│ ├── backend-ci.yml
-│ ├── consumer-android-ci.yml
-│ └── merchant-android-ci.yml
+│   └── workflows/
+│       ├── backend-ci.yml
+│       ├── consumer-android-ci.yml
+│       └── merchant-android-ci.yml
 │
 ├── .gitignore
-└── README.md 
-
+└── README.md
 
 
 ---
